@@ -6,7 +6,7 @@ from .decoder import TransformerDecoder
 
 class Seq2Seq(nn.Module):
     def __init__(self, src_vocab_size, tgt_vocab_size, d_model=256, nhead=4,
-                 num_layers=4, dim_ff=1024, dropout=0.1, max_len=512):
+                 num_layers=4, dim_ff=1024, dropout=0.1, max_len=4096):
         super().__init__()
         self.encoder = TransformerEncoder(
             src_vocab_size, d_model, nhead, num_layers, dim_ff, dropout, max_len

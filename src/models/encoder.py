@@ -4,7 +4,7 @@ import torch.nn as nn
 
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, d_model, max_len=512, dropout=0.1):
+    def __init__(self, d_model, max_len=4096, dropout=0.1):
         super().__init__()
         self.dropout = nn.Dropout(dropout)
         pe = torch.zeros(max_len, d_model)
@@ -21,7 +21,7 @@ class PositionalEncoding(nn.Module):
 
 class TransformerEncoder(nn.Module):
     def __init__(self, vocab_size, d_model=256, nhead=4, num_layers=4,
-                 dim_ff=1024, dropout=0.1, max_len=512):
+                 dim_ff=1024, dropout=0.1, max_len=4096):
         super().__init__()
         self.d_model = d_model
         self.embedding = nn.Embedding(vocab_size, d_model, padding_idx=0)

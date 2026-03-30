@@ -6,7 +6,7 @@ from .encoder import TransformerEncoder
 
 class JEPA(nn.Module):
     def __init__(self, vocab_size, d_model=256, nhead=4, num_layers=4,
-                 dim_ff=1024, dropout=0.1, max_len=512):
+                 dim_ff=1024, dropout=0.1, max_len=4096):
         super().__init__()
         self.context_encoder = TransformerEncoder(
             vocab_size, d_model, nhead, num_layers, dim_ff, dropout, max_len
