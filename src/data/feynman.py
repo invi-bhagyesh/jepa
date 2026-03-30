@@ -30,13 +30,15 @@ def load_features(data_dir, equation_name):
 # regex tokenizer for mathematical equations
 # order: multi-char functions first, then operators, then variables/numbers
 EQUATION_TOKEN_PATTERN = re.compile(
-    r'sqrt|exp|log|sin|cos|tan|asin|acos|atan|'  # functions
-    r'arcsin|arccos|arctan|tanh|cosh|sinh|'       # more functions
+    r'sqrt|exp|log|ln|'                            # functions (short)
+    r'arcsin|arccos|arctan|'                       # inverse trig (before sin/cos/tan)
+    r'tanh|cosh|sinh|'                             # hyperbolic (before sin/cos/tan)
+    r'asin|acos|atan|sin|cos|tan|'                 # trig
     r'\*\*|'                                       # exponentiation
     r'[+\-*/()^,]|'                               # operators
-    r'\d+\.\d+|\d+|'                              # numbers
-    r'pi|epsilon|sigma|theta|alpha|beta|gamma|'    # greek letters
-    r'[a-zA-Z_]\w*'                               # variables
+    r'\d+\.\d+|'                                   # decimal numbers
+    r'[a-zA-Z_]\w*|'                               # variables (catches theta1, m_0, etc.)
+    r'\d+'                                         # integers (last, so theta1 isn't split)
 )
 
 SPECIAL_TOKENS = ["<PAD>", "<SOS>", "<EOS>", "<UNK>"]
