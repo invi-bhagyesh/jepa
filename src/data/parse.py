@@ -22,15 +22,27 @@ def parse_file(path):
             line = line.strip()
             if not line:
                 continue
-            # split on " : " to avoid splitting inside expressions with colons
-            parts = re.split(r'\s*:\s*', line, maxsplit=3)
-            if len(parts) != 4:
+            # The raw data format uses " : " as field separator, but the
+            # Feynman diagram field itself contains colons (e.g. "Vertex V_0:u(X_1)").
+            # The actual amplitude and squared amplitude are the LAST two
+            # colon-separated fields. Split from the right to get them correctly.
+            parts = line.split(" : ")
+            if len(parts) < 4:
                 continue
+            # Last field = squared amplitude, second-to-last = amplitude
+            # Everything before that = interaction + Feynman diagram
+            squared_amplitude = parts[-1].strip()
+            amplitude = parts[-2].strip()
+            # First part is always the interaction type
+            interaction = parts[0].strip()
+            # Everything in between is the Feynman diagram
+            feynman_diagram = " : ".join(parts[1:-2]).strip()
+
             rows.append({
-                "interaction": parts[0].strip(),
-                "feynman_diagram": parts[1].strip(),
-                "amplitude": parts[2].strip(),
-                "squared_amplitude": parts[3].strip(),
+                "interaction": interaction,
+                "feynman_diagram": feynman_diagram,
+                "amplitude": amplitude,
+                "squared_amplitude": squared_amplitude,
                 "physics_model": model,
                 "source_file": path.name,
             })
