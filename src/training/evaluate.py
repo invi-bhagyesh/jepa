@@ -24,8 +24,21 @@ def token_accuracy(model, loader, device="cpu"):
     return correct / max(1, total)
 
 
+def _clean_ids(ids, tokenizer):
+    """Strip PAD, SOS, EOS from a token id list."""
+    special = {tokenizer.pad_id, tokenizer.sos_id, tokenizer.eos_id}
+    # truncate at first EOS if present
+    clean = []
+    for t in ids:
+        if t == tokenizer.eos_id:
+            break
+        if t not in special:
+            clean.append(t)
+    return clean
+
+
 @torch.no_grad()
-def sequence_exact_match(model, loader, tokenizer, max_len=256, device="cpu"):
+def sequence_exact_match(model, loader, tokenizer, max_len=1500, device="cpu"):
     model.eval()
     correct, total = 0, 0
     for src, tgt in tqdm(loader, desc="Exact match eval"):
@@ -38,10 +51,8 @@ def sequence_exact_match(model, loader, tokenizer, max_len=256, device="cpu"):
             pred = model.generate(s, tokenizer.sos_id, tokenizer.eos_id,
                                   max_len=max_len, beam_width=1,
                                   src_padding_mask=sp)
-            pred_ids = pred[0, 1:].tolist()  # strip SOS
-            tgt_ids = tgt[i].tolist()
-            # strip padding and EOS from target
-            tgt_ids = [t for t in tgt_ids if t != 0]
+            pred_ids = _clean_ids(pred[0].tolist(), tokenizer)
+            tgt_ids = _clean_ids(tgt[i].tolist(), tokenizer)
 
             if pred_ids == tgt_ids:
                 correct += 1
@@ -51,7 +62,7 @@ def sequence_exact_match(model, loader, tokenizer, max_len=256, device="cpu"):
 
 
 @torch.no_grad()
-def top_k_accuracy(model, loader, tokenizer, k=5, max_len=256, device="cpu"):
+def top_k_accuracy(model, loader, tokenizer, k=5, max_len=1500, device="cpu"):
     model.eval()
     correct, total = 0, 0
     for src, tgt in tqdm(loader, desc=f"Top-{k} eval"):
@@ -64,10 +75,10 @@ def top_k_accuracy(model, loader, tokenizer, k=5, max_len=256, device="cpu"):
             memory = model.encoder(s, src_key_padding_mask=sp)
             beams = model._beam_decode(memory, tokenizer.sos_id,
                                        tokenizer.eos_id, max_len, k, sp)
-            tgt_ids = [t for t in tgt[i].tolist() if t != 0]
+            tgt_ids = _clean_ids(tgt[i].tolist(), tokenizer)
 
             hit = any(
-                b[0, 1:].tolist() == tgt_ids for b in beams
+                _clean_ids(b[0].tolist(), tokenizer) == tgt_ids for b in beams
             )
             if hit:
                 correct += 1
